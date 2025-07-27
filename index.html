@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quicky - AI Summarization Tool</title>
+    <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@200..900&family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #000004 0%, #000c4f 16.7%, #5b8183 33.3%, #e8cd7e 50%, #ffb244 66.7%, #9e4700 83.3%, #000000 100%);
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 50%, rgba(15, 23, 42, 0.95) 100%);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(251, 191, 36, 0.2);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            position: fixed;
+            height: 100vh;
+            z-index: 10;
+        }
+
+        .sidebar-header {
+            padding: 24px;
+            border-bottom: 1px solid rgba(251, 191, 36, 0.2);
+            background: linear-gradient(90deg, rgba(245, 158, 11, 0.05) 0%, rgba(249, 115, 22, 0.05) 50%, rgba(239, 68, 68, 0.05) 100%);
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo {
+            position: relative;
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #fbbf24 0%, #f97316 50%, #dc2626 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 25px -5px rgba(245, 158, 11, 0.3);
+        }
+
+        .logo-inner {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #1e293b;
+            font-weight: 900;
+            font-size: 18px;
+        }
+
+        .logo-dot {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            width: 12px;
+            height: 12px;
+            background: #fbbf24;
+            border-radius: 50%;
+        }
+
+        .brand-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand-name {
+            font-family: 'Unbounded', sans-serif;
+            font-weight: 700;
+            font-size: 20px;
+            color: white;
+            letter-spacing: 0.05em;
+        }
+
+        .brand-subtitle {
+            font-size: 10px;
+            color: rgba(251, 191, 36, 0.8);
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .sidebar-content {
+            padding: 16px;
+        }
+
+        .tool-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .tool-button {
+            width: 100%;
+            height: 64px;
+            padding: 16px;
+            border-radius: 12px;
+            border: 2px solid rgba(100, 116, 139, 0.5);
+            background: rgba(30, 41, 59, 0.5);
+            color: #cbd5e1;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .tool-button:hover {
+            background: rgba(245, 158, 11, 0.1);
+            border-color: rgba(251, 191, 36, 0.4);
+            color: rgba(251, 191, 36, 0.9);
+            box-shadow: 0 10px 25px -5px rgba(245, 158, 11, 0.1);
+        }
+
+        .tool-button.active {
+            box-shadow: 0 10px 25px -5px rgba(239, 68, 68, 0.2);
+        }
+
+        .tool-button.active.video {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(248, 113, 113, 0.5);
+            color: #fecaca;
+        }
+
+        .tool-button.active.blog {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: rgba(96, 165, 250, 0.5);
+            color: #bfdbfe;
+        }
+
+        .tool-button.active.ebook {
+            background: rgba(34, 197, 94, 0.2);
+            border-color: rgba(74, 222, 128, 0.5);
+            color: #bbf7d0;
+        }
+
+        .tool-button.active.paragraph {
+            background: rgba(168, 85, 247, 0.2);
+            border-color: rgba(196, 181, 253, 0.5);
+            color: #e9d5ff;
+        }
+
+        .tool-icon-container {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: rgba(51, 65, 85, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .tool-button:hover .tool-icon-container {
+            background: rgba(245, 158, 11, 0.2);
+        }
+
+        .tool-button.active .tool-icon-container {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(4px);
+        }
+
+        .tool-icon {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        .tool-text {
+            flex: 1;
+            text-align: left;
+        }
+
+        .tool-title {
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+
+        .tool-subtitle {
+            font-size: 12px;
+            font-weight: 500;
+            opacity: 0.8;
+            line-height: 1.2;
+        }
+
+        .active-indicator {
+            position: absolute;
+            right: 12px;
+            width: 8px;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 4px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Hero Section */
+        .hero {
+            position: relative;
+            height: 70vh;
+            min-height: 500px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .hero-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.3) 50%, rgba(0, 0, 0, 0.6) 100%);
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            max-width: 1200px;
+            padding: 0 24px;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 50px;
+            background: linear-gradient(90deg, rgba(245, 158, 11, 0.2) 0%, rgba(249, 115, 22, 0.2) 100%);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            margin-bottom: 24px;
+            color: #fcd34d;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .hero-title {
+            font-family: 'Unbounded', sans-serif;
+            font-weight: 700;
+            font-size: clamp(2rem, 5vw, 4rem);
+            line-height: 1.1;
+            margin-bottom: 16px;
+        }
+
+        .hero-gradient-text {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 32px;
+        }
+
+        .gradient-word {
+            font-family: 'Unbounded', sans-serif;
+            font-weight: 700;
+            font-size: clamp(1.5rem, 4vw, 3rem);
+            background: linear-gradient(90deg, #fbbf24 0%, #f97316 50%, #ef4444 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-description {
+            font-size: clamp(1.125rem, 2vw, 1.5rem);
+            color: #e5e7eb;
+            line-height: 1.6;
+            margin-bottom: 40px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, #f59e0b 0%, #f97316 50%, #ef4444 100%);
+            color: white;
+            padding: 16px 40px;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 25px 50px -12px rgba(245, 158, 11, 0.25);
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 25px 50px -12px rgba(245, 158, 11, 0.4);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            padding: 16px 32px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(4px);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Tool Section */
+        .tool-section {
+            flex: 1;
+            padding: 32px 24px;
+        }
+
+        .tool-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 32px;
+        }
+
+        .tool-main {
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        .card {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(251, 191, 36, 0.2);
+            border-radius: 16px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+        }
+
+        .card-content {
+            padding: 32px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .input {
+            flex: 1;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid rgba(251, 191, 36, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            font-size: 14px;
+        }
+
+        .input::placeholder {
+            color: rgba(156, 163, 175, 1);
+        }
+
+        .input:focus {
+            outline: none;
+            border-color: rgba(251, 191, 36, 0.5);
+        }
+
+        .textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid rgba(251, 191, 36, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            font-size: 14px;
+            resize: none;
+            font-family: inherit;
+        }
+
+        .textarea::placeholder {
+            color: rgba(156, 163, 175, 1);
+        }
+
+        .textarea:focus {
+            outline: none;
+            border-color: rgba(251, 191, 36, 0.5);
+        }
+
+        .upload-area {
+            border: 2px dashed rgba(251, 191, 36, 0.3);
+            border-radius: 8px;
+            padding: 32px;
+            text-align: center;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(249, 115, 22, 0.05) 100%);
+        }
+
+        .upload-area:hover {
+            border-color: rgba(251, 191, 36, 0.5);
+        }
+
+        .upload-icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 16px;
+            color: #fbbf24;
+        }
+
+        .format-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .format-button {
+            height: 64px;
+            padding: 12px;
+            border-radius: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            background: rgba(0, 0, 0, 0.2);
+            color: #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .format-button:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.5);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .format-button.active {
+            border: none;
+            color: white;
+            box-shadow: 0 10px 25px -5px rgba(245, 158, 11, 0.25);
+        }
+
+        .format-button.active.bullets {
+            background: linear-gradient(90deg, #3b82f6 0%, #06b6d4 100%);
+        }
+
+        .format-button.active.paragraphs {
+            background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+        }
+
+        .format-button.active.notes {
+            background: linear-gradient(90deg, #8b5cf6 0%, #7c3aed 100%);
+        }
+
+        .format-button.active.mindmap {
+            background: linear-gradient(90deg, #ec4899 0%, #be185d 100%);
+        }
+
+        .format-button.active.keywords {
+            background: linear-gradient(90deg, #6366f1 0%, #4f46e5 100%);
+        }
+
+        .format-button.active.slides {
+            background: linear-gradient(90deg, #f59e0b 0%, #f97316 100%);
+        }
+
+        .generate-button {
+            width: 100%;
+            padding: 16px;
+            border-radius: 16px;
+            border: none;
+            background: linear-gradient(90deg, #f59e0b 0%, #f97316 50%, #ef4444 100%);
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 25px 50px -12px rgba(245, 158, 11, 0.25);
+        }
+
+        .generate-button:hover {
+            transform: scale(1.02);
+            box-shadow: 0 25px 50px -12px rgba(245, 158, 11, 0.4);
+        }
+
+        .generate-button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .output-area {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 16px;
+            padding: 24px;
+            min-height: 250px;
+            border: 1px solid rgba(251, 191, 36, 0.1);
+            backdrop-filter: blur(4px);
+        }
+
+        .output-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 160px;
+            color: #9ca3af;
+            font-style: italic;
+            font-size: 18px;
+        }
+
+        .output-text {
+            color: #e5e7eb;
+            line-height: 1.6;
+            font-size: 18px;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .action-button {
+            padding: 8px 16px;
+            border-radius: 12px;
+            border: 2px solid;
+            background: transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .action-button.regenerate {
+            border-color: rgba(96, 165, 250, 0.5);
+            color: #93c5fd;
+        }
+
+        .action-button.regenerate:hover {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: rgba(96, 165, 250, 0.7);
+        }
+
+        .action-button.copy {
+            border-color: rgba(74, 222, 128, 0.5);
+            color: #86efac;
+        }
+
+        .action-button.copy:hover {
+            background: rgba(34, 197, 94, 0.1);
+            border-color: rgba(74, 222, 128, 0.7);
+        }
+
+        .action-button.like {
+            border-color: rgba(244, 114, 182, 0.5);
+            color: #f9a8d4;
+        }
+
+        .action-button.like:hover {
+            background: rgba(236, 72, 153, 0.1);
+            border-color: rgba(244, 114, 182, 0.7);
+        }
+
+        /* Sidebar Right */
+        .sidebar-right {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .tips-card {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(249, 115, 22, 0.1) 50%, rgba(239, 68, 68, 0.1) 100%);
+            border: 1px solid rgba(251, 191, 36, 0.2);
+            border-radius: 16px;
+            backdrop-filter: blur(4px);
+        }
+
+        .tips-title {
+            color: rgba(251, 191, 36, 0.9);
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tips-list {
+            list-style: none;
+            font-size: 14px;
+            color: #d1d5db;
+        }
+
+        .tips-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .tip-bullet {
+            margin-top: 4px;
+        }
+
+        /* Footer */
+        .footer {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 64px 24px;
+            margin-top: auto;
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 32px;
+        }
+
+        .footer-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .footer-logo {
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #fbbf24 0%, #f97316 50%, #dc2626 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 25px -5px rgba(245, 158, 11, 0.3);
+        }
+
+        .footer-logo span {
+            color: white;
+            font-weight: 700;
+            font-size: 20px;
+        }
+
+        .footer-brand-name {
+            font-family: 'Unbounded', sans-serif;
+            font-weight: 700;
+            font-size: 24px;
+            color: white;
+            letter-spacing: 0.05em;
+        }
+
+        .footer-description {
+            color: #d1d5db;
+            line-height: 1.6;
+            max-width: 400px;
+        }
+
+        .footer-section h6 {
+            color: white;
+            font-weight: 700;
+            font-size: 18px;
+            margin-bottom: 24px;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 12px;
+        }
+
+        .footer-links a {
+            color: #d1d5db;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: #fcd34d;
+            text-decoration: underline;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 16px;
+        }
+
+        .social-link {
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(249, 115, 22, 0.2) 100%);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #d1d5db;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .social-link:hover {
+            color: white;
+            border-color: #fbbf24;
+            transform: scale(1.1);
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            margin-top: 48px;
+            padding-top: 32px;
+        }
+
+        .disclaimer {
+            background: linear-gradient(90deg, rgba(245, 158, 11, 0.1) 0%, rgba(249, 115, 22, 0.1) 50%, rgba(239, 68, 68, 0.1) 100%);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid rgba(251, 191, 36, 0.2);
+            margin-bottom: 24px;
+        }
+
+        .disclaimer p {
+            font-size: 14px;
+            color: #d1d5db;
+            line-height: 1.6;
+        }
+
+        .disclaimer strong {
+            color: #fcd34d;
+        }
+
+        .copyright {
+            text-align: center;
+            font-size: 14px;
+            color: #9ca3af;
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 160px;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid rgba(251, 191, 36, 0.2);
+            border-top: 4px solid #fbbf24;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .tool-container {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .format-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .social-links {
+                justify-content: center;
+            }
+        }
+
+        /* Utility Classes */
+        .hidden {
+            display: none;
+        }
+
+        .icon {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-container">
+                    <div class="logo">
+                        <div class="logo-inner">Q</div>
+                        <div class="logo-dot"></div>
+                    </div>
+                    <div class="brand-text">
+                        <div class="brand-name">QUICKY</div>
+                        <div class="brand-subtitle">AI Summarizer</div>
+                    </div>
+                </div>
+            </div>
+            <div class="sidebar-content">
+                <div class="tool-menu">
+                    <button class="tool-button active video" data-tool="video">
+                        <div class="tool-icon-container">
+                            <svg class="tool-icon" viewBox="0 0 24 24">
+                                <polygon points="23 7 16 12 23 17 23 7"></polygon>
+                                <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+                            </svg>
+                        </div>
+                        <div class="tool-text">
+                            <div class="tool-title">Video URL</div>
+                            <div class="tool-subtitle">Summarizer</div>
+                        </div>
+                        <div class="active-indicator"></div>
+                    </button>
+                    <button class="tool-button blog" data-tool="blog">
+                        <div class="tool-icon-container">
+                            <svg class="tool-icon" viewBox="0 0 24 24">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14,2 14,8 20,8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                <polyline points="10,9 9,9 8,9"></polyline>
+                            </svg>
+                        </div>
+                        <div class="tool-text">
+                            <div class="tool-title">Blog URL</div>
+                            <div class="tool-subtitle">Summarizer</div>
+                        </div>
+                    </button>
+                    <button class="tool-button ebook" data-tool="ebook">
+                        <div class="tool-icon-container">
+                            <svg class="tool-icon" viewBox="0 0 24 24">
+                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                            </svg>
+                        </div>
+                        <div class="tool-text">
+                            <div class="tool-title">Ebook / PDF</div>
+                            <div class="tool-subtitle">Summarizer</div>
+                        </div>
+                    </button>
+                    <button class="tool-button paragraph" data-tool="paragraph">
+                        <div class="tool-icon-container">
+                            <svg class="tool-icon" viewBox="0 0 24 24">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                        </div>
+                        <div class="tool-text">
+                            <div class="tool-title">Paragraph</div>
+                            <div class="tool-subtitle">Summarizer</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Hero Section -->
+            <section class="hero">
+                <div class="hero-overlay"></div>
+                <div class="hero-content">
+                    <div class="hero-badge">✨ AI-Powered Summarization</div>
+                    <h1 class="hero-title">Summarize Anything.</h1>
+                    <div class="hero-gradient-text">
+                        <div class="gradient-word">Smarter.</div>
+                        <div class="gradient-word">Faster.</div>
+                    </div>
+                    <p class="hero-description">
+                        Turn video URLs, blogs, PDFs, or paragraphs into smart summaries like mind maps, bullet points, and short notes.
+                    </p>
+                    <div class="hero-buttons">
+                        <button class="btn-primary">
+                            Start Summarizing
+                            <svg class="icon" viewBox="0 0 24 24">
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                                <polyline points="12,5 19,12 12,19"></polyline>
+                            </svg>
+                        </button>
+                        <button class="btn-secondary">Watch Demo</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tool Section -->
+            <section class="tool-section">
+                <div class="tool-container">
+                    <div class="tool-main">
+                        <!-- Input Section -->
+                        <div class="card">
+                            <div class="card-content">
+                                <div id="tool-content">
+                                    <!-- Video Tool Content -->
+                                    <div id="video-content" class="tool-content">
+                                        <h3 class="section-title">🎥 Video URL Summarizer</h3>
+                                        <div class="input-group">
+                                            <input type="text" class="input" placeholder="Paste YouTube, Vimeo, or any video URL here...">
+                                            <button class="action-button" style="border-color: rgba(251, 191, 36, 0.3); color: #fcd34d;">
+                                                <svg class="icon" viewBox="0 0 24 24">
+                                                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.72"></path>
+                                                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.72-1.72"></path>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Blog Tool Content -->
+                                    <div id="blog-content" class="tool-content hidden">
+                                        <h3 class="section-title">📰 Blog URL Summarizer</h3>
+                                        <div class="input-group">
+                                            <input type="text" class="input" placeholder="Paste blog or article URL here...">
+                                            <button class="action-button" style="border-color: rgba(251, 191, 36, 0.3); color: #fcd34d;">
+                                                <svg class="icon" viewBox="0 0 24 24">
+                                                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.72"></path>
+                                                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.72-1.72"></path>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Ebook Tool Content -->
+                                    <div id="ebook-content" class="tool-content hidden">
+                                        <h3 class="section-title">📚 Ebook / PDF Summarizer</h3>
+                                        <div class="upload-area">
+                                            <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                                <polyline points="7,10 12,15 17,10"></polyline>
+                                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                                            </svg>
+                                            <p style="color: #d1d5db; margin-bottom: 8px;">Drag and drop your PDF or DOC file here</p>
+                                            <p style="color: #9ca3af; font-size: 14px; margin-bottom: 16px;">or click to browse files</p>
+                                            <button class="action-button" style="border-color: rgba(251, 191, 36, 0.3); color: #fcd34d;">Choose File</button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Paragraph Tool Content -->
+                                    <div id="paragraph-content" class="tool-content hidden">
+                                        <h3 class="section-title">✍ Paragraph Summarizer</h3>
+                                        <textarea class="textarea" placeholder="Paste your text, paragraph, or content here for summarization..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Format Selector -->
+                        <div class="card">
+                            <div class="card-content">
+                                <h4 class="section-title">🎯 Choose Output Format</h4>
+                                <div class="format-grid">
+                                    <button class="format-button active bullets" data-format="bullets">
+                                        <svg class="icon" viewBox="0 0 24 24">
+                                            <line x1="8" y1="6" x2="21" y2="6"></line>
+                                            <line x1="8" y1="12" x2="21" y2="12"></line>
+                                            <line x1="8" y1="18" x2="21" y2="18"></line>
+                                            <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                                            <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                                            <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                                        </svg>
+                                        <span>Bullet Points</span>
+                                    </button>
+                                    <button class="format-button paragraphs" data-format="paragraphs">
+                                        <svg class="icon" viewBox="0 0 24 24">
+                                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                            <polyline points="14,2 14,8 20,8"></polyline>
+                                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                                        </svg>
+                                        <span>Paragraphs</span>
+                                    </button>
+                                    <button class="format-button notes" data-format="notes">
+                                        <svg class="icon" viewBox="0 0 24 24">
+                                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                            <polyline points="14,2 14,8 20,8"></polyline>
+                                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                                        </svg>
+                                        <span>Short Notes</span>
+                                    </button>
+                                    <button class="format-button mindmap" data-format="mindmap">
+                                        <svg class="icon" viewBox="0 0 24 24">
+                                            <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"></path>
+                                            <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"></path>
+                                        </svg>
+                                        <span>Mind Map</span>
+                                    </button>
+                                    <button class="format-button keywords" data-format="keywords">
+                                        <svg class="icon" viewBox="0 0 24 24">
+                                            <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path>
+                                        </svg>
+                                        <span>Keywords</span>
+                                    </button>
+                                    <button class="format-button slides" data-format="slides">
+                                        <svg class="icon" viewBox="0 0 24 24">
+                                            <rect x="3" y="4" width="18" height="12" rx="1"></rect>
+                                            <line x1="7" y1="20" x2="17" y2="20"></line>
+                                            <line x1="9" y1="16" x2="9" y2="20"></line>
+                                            <line x1="15" y1="16" x2="15" y2="20"></line>
+                                        </svg>
+                                        <span>Slides</span>
+                                    </button>
+                                </div>
+                                <button class="generate-button" id="generateBtn">
+                                    <span>✨</span>
+                                    Generate Summary
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Output Section -->
+                        <div class="card">
+                            <div class="card-content">
+                                <h4 class="section-title">
+                                    📄 Summary Output
+                                    <span id="format-badge" class="format-badge" style="margin-left: 8px; padding: 4px 12px; border-radius: 50px; font-size: 12px; font-weight: 500; background: linear-gradient(90deg, #3b82f6 0%, #06b6d4 100%); color: white;">Bullet Points</span>
+                                </h4>
+                                <div class="output-area">
+                                    <div id="output-content" class="output-placeholder">
+                                        Your summary will appear here...
+                                    </div>
+                                </div>
+                                <div id="action-buttons" class="action-buttons hidden">
+                                    <button class="action-button regenerate">
+                                        <svg class="icon" viewBox="0 0 24 24">
+                                            <polyline points="23,4 23,10 17,10"></polyline>
+                                            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                                        </svg>
+                                        Regenerate
+                                    </button>
+                                    <button class="action-button copy">
+                                        <svg class="icon" viewBox="0 0 24 24">
+                                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                        </svg>
+                                        Copy
+                                    </button>
+                                    <button class="action-button like">
+                                        <svg class="icon" viewBox="0 0 24 24">
+                                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                                        </svg>
+                                        Like
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Sidebar -->
+                    <div class="sidebar-right">
+                        <div class="card">
+                            <div class="card-content">
+                                <div style="aspect-ratio: 1; border-radius: 8px; background: linear-gradient(135deg, rgba(168, 85, 247, 0.2) 0%, rgba(59, 130, 246, 0.2) 100%); display: flex; align-items: center; justify-content: center; border: 1px solid rgba(251, 191, 36, 0.2);">
+                                    <div style="width: 100%; height: 100%; border-radius: 8px; background-image: url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"300\" height=\"300\" viewBox=\"0 0 300 300\"><rect width=\"300\" height=\"300\" fill=\"%23374151\"/><text x=\"50%\" y=\"50%\" font-size=\"14\" fill=\"%23d1d5db\" text-anchor=\"middle\" dy=\".3em\">AI Illustration Placeholder</text></svg>'); background-size: cover; background-position: center;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card tips-card">
+                            <div class="card-content">
+                                <h5 class="tips-title">💡 Tips</h5>
+                                <ul class="tips-list">
+                                    <li>
+                                        <span class="tip-bullet" style="color: #fbbf24;">•</span>
+                                        Use clear, well-structured content for better results
+                                    </li>
+                                    <li>
+                                        <span class="tip-bullet" style="color: #f97316;">•</span>
+                                        Try different output formats to find what works best
+                                    </li>
+                                    <li>
+                                        <span class="tip-bullet" style="color: #ef4444;">•</span>
+                                        Longer content may take more time to process
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Footer -->
+            <footer class="footer">
+                <div class="footer-content">
+                    <div>
+                        <div class="footer-brand">
+                            <div class="footer-logo">
+                                <span>Q</span>
+                            </div>
+                            <div class="footer-brand-name">Quicky</div>
+                        </div>
+                        <p class="footer-description">
+                            AI-powered summarization tool that transforms any content into digestible insights. Save time and boost productivity with intelligent content processing.
+                        </p>
+                    </div>
+                    <div class="footer-section">
+                        <h6>Quick Links</h6>
+                        <ul class="footer-links">
+                            <li><a href="#">About</a></li>
+                            <li><a href="#">Privacy Policy</a></li>
+                            <li><a href="#">Terms of Use</a></li>
+                            <li><a href="#">Contact</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-section">
+                        <h6>Connect</h6>
+                        <div class="social-links">
+                            <a href="#" class="social-link">
+                                <svg class="icon" viewBox="0 0 24 24">
+                                    <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path>
+                                </svg>
+                            </a>
+                            <a href="#" class="social-link">
+                                <svg class="icon" viewBox="0 0 24 24">
+                                    <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+                                </svg>
+                            </a>
+                            <a href="#" class="social-link">
+                                <svg class="icon" viewBox="0 0 24 24">
+                                    <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+                                    <rect x="2" y="9" width="4" height="12"></rect>
+                                    <circle cx="4" cy="4" r="2"></circle>
+                                </svg>
+                            </a>
+                            <a href="#" class="social-link">
+                                <svg class="icon" viewBox="0 0 24 24">
+                                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                                    <polyline points="22,6 12,13 2,6"></polyline>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="footer-bottom">
+                    <div class="disclaimer">
+                        <p>
+                            <strong>⚠️ Disclaimer:</strong> This tool uses AI APIs to summarize uploaded or linked content. Accuracy may vary based on source quality. Please review generated summaries for accuracy before use in critical applications.
+                        </p>
+                    </div>
+                    <p class="copyright">© 2024 Quicky. All rights reserved. Made with ❤️ for productivity.</p>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <script>
+        // Tool switching functionality
+        const toolButtons = document.querySelectorAll('.tool-button');
+        const toolContents = document.querySelectorAll('.tool-content');
+
+        toolButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const tool = button.dataset.tool;
+                
+                // Remove active class from all buttons
+                toolButtons.forEach(btn => {
+                    btn.classList.remove('active');
+                    btn.querySelector('.active-indicator')?.remove();
+                });
+                
+                // Add active class to clicked button
+                button.classList.add('active');
+                const indicator = document.createElement('div');
+                indicator.className = 'active-indicator';
+                button.appendChild(indicator);
+                
+                // Hide all tool contents
+                toolContents.forEach(content => {
+                    content.classList.add('hidden');
+                });
+                
+                // Show selected tool content
+                document.getElementById(tool + '-content').classList.remove('hidden');
+            });
+        });
+
+        // Format button functionality
+        const formatButtons = document.querySelectorAll('.format-button');
+        const formatBadge = document.getElementById('format-badge');
+        
+        const formatColors = {
+            bullets: 'linear-gradient(90deg, #3b82f6 0%, #06b6d4 100%)',
+            paragraphs: 'linear-gradient(90deg, #10b981 0%, #059669 100%)',
+            notes: 'linear-gradient(90deg, #8b5cf6 0%, #7c3aed 100%)',
+            mindmap: 'linear-gradient(90deg, #ec4899 0%, #be185d 100%)',
+            keywords: 'linear-gradient(90deg, #6366f1 0%, #4f46e5 100%)',
+            slides: 'linear-gradient(90deg, #f59e0b 0%, #f97316 100%)'
+        };
+
+        const formatLabels = {
+            bullets: 'Bullet Points',
+            paragraphs: 'Paragraphs',
+            notes: 'Short Notes',
+            mindmap: 'Mind Map',
+            keywords: 'Keywords',
+            slides: 'Slides'
+        };
+
+        formatButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const format = button.dataset.format;
+                
+                // Remove active class from all format buttons
+                formatButtons.forEach(btn => {
+                    btn.classList.remove('active');
+                    btn.classList.remove('bullets', 'paragraphs', 'notes', 'mindmap', 'keywords', 'slides');
+                });
+                
+                // Add active class to clicked button
+                button.classList.add('active', format);
+                
+                // Update format badge
+                formatBadge.textContent = formatLabels[format];
+                formatBadge.style.background = formatColors[format];
+            });
+        });
+
+        // Generate button functionality
+        const generateBtn = document.getElementById('generateBtn');
+        const outputContent = document.getElementById('output-content');
+        const actionButtons = document.getElementById('action-buttons');
+
+        generateBtn.addEventListener('click', () => {
+            // Show loading state
+            generateBtn.disabled = true;
+            generateBtn.innerHTML = `
+                <div class="spinner" style="width: 20px; height: 20px; margin-right: 8px;"></div>
+                AI is summarizing...
+            `;
+            
+            outputContent.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p style="color: #d1d5db; font-weight: 500;">AI is summarizing...</p>
+                    <p style="color: #9ca3af; font-size: 14px;">This may take a few moments</p>
+                </div>
+            `;
+
+            // Simulate API call
+            setTimeout(() => {
+                // Reset button
+                generateBtn.disabled = false;
+                generateBtn.innerHTML = `
+                    <span>✨</span>
+                    Generate Summary
+                `;
+                
+                // Show output
+                outputContent.innerHTML = `
+                    <div class="output-text">
+                        This is a sample AI-generated summary. The actual implementation would connect to your AI API to generate real summaries based on the input content and selected format. This demonstrates how the interface would work with real data.
+                    </div>
+                `;
+                
+                // Show action buttons
+                actionButtons.classList.remove('hidden');
+            }, 3000);
+        });
+
+        // Copy functionality
+        document.querySelector('.action-button.copy').addEventListener('click', () => {
+            const outputText = document.querySelector('.output-text');
+            if (outputText) {
+                navigator.clipboard.writeText(outputText.textContent).then(() => {
+                    // Show success feedback
+                    const copyBtn = document.querySelector('.action-button.copy');
+                    const originalText = copyBtn.innerHTML;
+                    copyBtn.innerHTML = `
+                        <svg class="icon" viewBox="0 0 24 24">
+                            <polyline points="20,6 9,17 4,12"></polyline>
+                        </svg>
+                        Copied!
+                    `;
+                    copyBtn.style.borderColor = 'rgba(34, 197, 94, 0.7)';
+                    copyBtn.style.color = '#22c55e';
+                    
+                    setTimeout(() => {
+                        copyBtn.innerHTML = originalText;
+                        copyBtn.style.borderColor = 'rgba(74, 222, 128, 0.5)';
+                        copyBtn.style.color = '#86efac';
+                    }, 2000);
+                });
+            }
+        });
+
+        // Regenerate functionality
+        document.querySelector('.action-button.regenerate').addEventListener('click', () => {
+            generateBtn.click();
+        });
+
+        // Like functionality
+        document.querySelector('.action-button.like').addEventListener('click', () => {
+            const likeBtn = document.querySelector('.action-button.like');
+            likeBtn.style.borderColor = 'rgba(236, 72, 153, 0.7)';
+            likeBtn.style.color = '#ec4899';
+            likeBtn.innerHTML = `
+                <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                </svg>
+                Liked!
+            `;
+        });
+
+        // Mobile responsiveness
+        function handleResize() {
+            const sidebar = document.getElementById('sidebar');
+            if (window.innerWidth <= 1024) {
+                sidebar.classList.remove('open');
+            }
+        }
+
+        window.addEventListener('resize', handleResize);
+        handleResize();
+
+        // Mobile menu toggle (if needed)
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+        }
+
+        // Smooth scrolling for hero button
+        document.querySelector('.btn-primary').addEventListener('click', () => {
+            document.querySelector('.tool-section').scrollIntoView({
+                behavior: 'smooth'
+            });
+        });
+    </script>
+</body>
+</html>
